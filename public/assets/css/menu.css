@@ -1,0 +1,53 @@
+.sidebar {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 250px;
+  background-color: #F765AD;
+  background: linear-gradient(360deg, #F765AD, #F7BAC4);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.sidebar a {
+  color: #fff;
+  display: block;
+  padding: 10px 20px;
+  border-radius: 6px;
+  transition: background 0.3s;
+}
+
+.sidebar a:hover, .sidebar a.active {
+  background-color: rgba(255,255,255,0.2);
+  text-decoration: none;
+}
+
+.sidebar-header h5 {
+  font-weight: bold;
+}
+
+.sidebar-footer {
+  font-size: 14px;
+  background: rgba(0,0,0,0.1);
+}
+
+body {
+  padding-right: 260px; /* برای فضای منو */
+}
+
+h1.text-success.mb-4 {
+    padding: 30px 10px;
+    border: 1px solid #c5c5c5;
+    border-radius: 5px;
+    font-size: 22px;
+    background: linear-gradient(90deg, #F765AD, #F7BAC4);
+    color: #fff !important;
+}
+
+#logo-img-mnu {
+    width: 100px;
+}

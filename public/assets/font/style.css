@@ -1,0 +1,41 @@
+/* html {
+  overflow-y: scroll;
+} */
+@font-face {
+  font-family: "Anjoman";
+  src: url("Anjoman-CondensedBold.woff")
+}
+@font-face {
+  font-family: "Anjoman-Bold";
+  src: url("Anjoman-Bold.woff")
+}
+@font-face {
+  font-family: "IRANSansX-Bold";
+  src: url("IRANSansX-Bold.ttf")
+}
+@font-face {
+  font-family: "IRANSansX-Medium";
+  src: url("IRANSansX-Medium.ttf")
+}
+
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "IRANSansX-Bold" !important;
+}
+
+a {
+  font-family: "IRANSansX-Medium" !important;
+}
+p {
+  font-family: "IRANSansX-Medium" !important;
+}
+span {
+  font-family: "IRANSansX-Medium" !important;
+}
+h1,h2,h3,h4,h5,h6 {
+  font-family: "IRANSansX-Bold" !important;
+}
+
+@media screen and (min-width: 50em) {
+}

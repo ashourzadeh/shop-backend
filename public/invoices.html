@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>مدیریت فاکتورها — با جستجوی مشتری و محصول</title>
+  <link rel="icon" href="ico/favicon.ico" type="image/x-icon">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#000000">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  
+  <link href="assets/font/style.css" rel="stylesheet">
+  <!-- در head -->
+<link rel="stylesheet" href="assets/css/menu.css">
+<link rel="stylesheet" href="assets/css/print.css" media="print">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date-format.js"></script>
+
+  <style>
+  body { background:#f7fafc;  }
+  .container { margin-top:40px; max-width:1100px; }
+  .card { border-radius:12px; }
+  /* .table thead th { background:#41b883; color:#fff; } */
+  .badge-total { font-size:1rem; }
+.d-flex.justify-content-between.align-items-center.mb-3 {
+    padding: 25px 15px;
+    background: linear-gradient(90deg, #F765AD, #F7BAC4);
+    border-radius: 10px;
+    box-shadow: var(--bs-box-shadow) !important;
+    margin-bottom: 22px !important;
+}
+
+h2.mb-0 {
+    font-size: 20px;
+    color: #fff;
+}
+
+button.btn.btn-success.me-2 {
+    background: #f777b2;
+    border-color: #f7bac4;
+}
+  /* پیشنهادات (dropdown suggestions) */
+  .suggestions {
+    position: absolute;
+    z-index: 2000;
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    width: 100%;
+    max-height: 240px;
+    overflow: auto;
+    border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  }
+  .suggestions .item {
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+  .suggestions .item:hover { background:#f1f1f1; }
+
+  .search-wrapper { position: relative; width: 100%; }
+  .small-muted { font-size: 0.9rem; color: #666; }
+
+.text-end {
+    text-align: right !important;
+}
+
+    .bg-success {
+        --bs-bg-opacity: 1;
+        background-color: #0dcaf0 !important;
+    }
+/* قالب چاپ مخصوص فاکتور فروشگاهی */
+@media print {
+  body { background: #fff !important; }
+  #printArea {
+    width: 80mm;
+    padding: 10px;
+    font-size: 13px;
+    font-family: sans-serif;
+    direction: rtl;
+  }
+  #printArea table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  #printArea th, #printArea td {
+    padding: 4px;
+    border-bottom: 1px dashed #666;
+  }
+  .invoice-header {
+    text-align: center;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #000;
+    padding-bottom: 6px;
+  }
+  .invoice-footer {
+    border-top: 2px solid #000;
+    margin-top: 10px;
+    padding-top: 6px;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<!-- در تمام صفحات بالا قبل از <div class="container"> -->
+<div id="navbar-placeholder"></div>
+
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="mb-0">🧾 مدیریت فاکتورها</h2>
+      <div>
+        <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#createInvoiceModal">➕ فاکتور جدید</button>
+        <button class="btn btn-outline-secondary" onclick="loadInvoices()">🔄 بارگذاری</button>
+      </div>
+    </div>
+
+    <div class="mb-3 d-flex justify-content-between">
+      <input id="invoiceSearch" class="form-control w-25" placeholder="جستجو شماره/مشتری...">
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body p-2">
+        <table class="table table-striped align-middle text-center mb-0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>شماره فاکتور</th>
+              <th>مشتری</th>
+              <th>تاریخ</th>
+              <th>مبلغ کل</th>
+              <th>عملیات</th>
+            </tr>
+          </thead>
+          <tbody id="invoicesTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال نمایش فاکتور -->
+  <div class="modal fade" id="viewInvoiceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title">🧾 جزئیات فاکتور</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="printArea">
+          <div id="invoiceDetails"></div>
+        </div>
+        <div class="modal-footer">
+          <!-- <button class="btn btn-primary" onclick="window.print()">🖨️ پرینت</button> -->
+          <button class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال ایجاد فاکتور -->
+  <div class="modal fade" id="createInvoiceModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">➕ فاکتور جدید</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <!-- CUSTOMER: searchable OR free-text -->
+            <div class="col-12 col-lg-4">
+              <label class="form-label">مشتری</label>
+              <div class="search-wrapper">
+                <input id="customerInput" class="form-control" placeholder="نام مشتری را تایپ کن یا از لیست انتخاب کن">
+                <div id="customerSuggestions" class="suggestions" style="display:none"></div>
+                <div class="small-muted mt-1">می‌توانید نام را دستی وارد کنید یا یکی از مشتریان را انتخاب کنید</div>
+              </div>
+              <!-- ذخیره customer id در hidden -->
+              <input type="hidden" id="selectedCustomerId" value="">
+    
+
+            </div>
+
+            <div class="col-12 col-lg-4">
+              <label class="form-label">مالیات</label>
+              <input id="taxInput" type="number" class="form-control" value="0">
+            </div>
+            <div class="col-12 col-lg-4">
+              <label class="form-label">تخفیف</label>
+              <input id="discountInput" type="number" class="form-control" value="0">
+              
+            </div>
+
+            <div class="col-12">
+              <hr/>
+              <!-- PRODUCT search + qty -->
+              <div class="d-flex gap-2 mb-2 align-items-start">
+                <div class="search-wrapper w-50">
+                  <input id="productSearch" class="form-control" placeholder="جستجو محصول بر اساس نام یا کد...">
+                  <div id="productSuggestions" class="suggestions" style="display:none"></div>
+                </div>
+                <input id="productQty" type="number" class="form-control w-25" value="1" min="1">
+                <button class="btn btn-primary" id="addItemBtn">➕ افزودن</button>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>نام محصول</th>
+                      <th>تعداد</th>
+                      <th>قیمت واحد</th>
+                      <th>جمع</th>
+                      <th>عملیات</th>
+                    </tr>
+                  </thead>
+                  <tbody id="invoiceItemsTbody"></tbody>
+                </table>
+              </div>
+
+              <div class="d-flex justify-content-end gap-3 align-items-center mt-3">
+                <div>جمع جزئی: <span id="subtotalSpan">0</span> تومان</div>
+                <div>مالیات: <span id="taxSpan">0</span> تومان</div>
+                <div>تخفیف: <span id="discountSpan">0</span> تومان</div>
+                <div class="fs-5">مجموع قابل پرداخت: <span id="totalSpan" class="badge bg-success badge-total">0</span> تومان</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-warning" onclick="sendToPOS()">💳 ارسال مبلغ به کارت‌خوان</button>
+
+          <button id="createInvoiceBtn" class="btn btn-success">💾 ثبت فاکتور</button>
+          <button class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ====== تنظیمات API ====== */
+const apiProducts = 'http://localhost:3000/api/products';
+const apiInvoices = 'http://localhost:3000/api/invoices';
+const apiCustomers = 'http://localhost:3000/api/customers';
+
+let products = [];        // لیست محصولات از سرور
+let customers = [];       // لیست مشتری‌ها از سرور (برای جستجوی محلی)
+let invoiceItems = [];    // آیتم‌های فاکتور در حافظه
+
+function toJalali(dateStr){
+  try {
+    return new persianDate(new Date(dateStr)).format("YYYY/MM/DD HH:mm:ss");
+  } catch {
+    return dateStr;
+  }
+}
+
+/* ====== helper debounce ====== */
+function debounce(fn, wait=250){
+  let t;
+  return (...args)=>{
+    clearTimeout(t);
+    t = setTimeout(()=>fn(...args), wait);
+  }
+}
+
+/* ====== ارسال به POS ====== */
+async function sendToPOS() {
+  const totalText = document.getElementById("totalSpan").innerText;
+  const amount = Number(totalText.replace(/,/g, ""));
+
+  if (!amount || amount <= 0) {
+    alert("مبلغ معتبر نیست");
+    return;
+  }
+
+  const orderId = "INV-" + Date.now();
+
+  const payload = {
+    ConnectionType: "Lan",
+    DeviceIp: "192.168.1.20",   // 🔴 IP کارت‌خوان (از پشتیبانی گرفتی)
+    DevicePort: "8009",
+    Amount: amount,            // ریال
+    OrderId: orderId,
+    SaleId: orderId,
+    DeviceType: "0"            // BlueBird
+  };
+
+  try {
+    const res = await fetch("http://localhost:8000/api/Sale", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    console.log("PCPOS:", data);
+
+    if (data && data.Status === "Success") {
+      alert("✅ پرداخت با موفقیت انجام شد");
+      // اینجا می‌تونی بعدش createInvoiceBtn رو خودکار بزنی
+    } else {
+      alert("❌ پرداخت ناموفق");
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ ارتباط با دستگاه POS برقرار نشد");
+  }
+}
+
+/* ====== بارگذاری اولیه محصولات و مشتری‌ها ====== */
+async function loadInitialData(){
+  await Promise.all([ loadProductsForSelect(), loadCustomersList() ]);
+}
+async function loadProductsForSelect(){
+  try {
+    const res = await fetch(apiProducts);
+    if(!res.ok) throw new Error('خطا در دریافت محصولات');
+    products = await res.json();
+    // no select element now — products used by suggestions
+  } catch(err){
+    console.error('loadProductsForSelect:', err);
+    products = [];
+  }
+}
+async function loadCustomersList(){
+  try {
+    const res = await fetch(apiCustomers);
+    if(!res.ok) throw new Error('خطا در دریافت مشتریان');
+    customers = await res.json();
+  } catch(err){
+    console.error('loadCustomersList:', err);
+    customers = [];
+  }
+}
+
+/* ====== CUSTOMER: searchable input behavior ====== */
+const customerInput = document.getElementById('customerInput');
+const customerSuggestions = document.getElementById('customerSuggestions');
+const selectedCustomerIdEl = document.getElementById('selectedCustomerId');
+
+function showCustomerSuggestions(list){
+  if(!list || list.length===0){
+    customerSuggestions.style.display='none';
+    customerSuggestions.innerHTML='';
+    return;
+  }
+  customerSuggestions.innerHTML = list.map(c => `<div class="item" data-id="${c._id}" data-name="${escapeHtml(c.name)}">${escapeHtml(c.name)} — ${c.phone?escapeHtml(c.phone):'-'}</div>`).join('');
+  customerSuggestions.style.display='block';
+}
+function filterCustomers(q){
+  if(!q) { showCustomerSuggestions(customers.slice(0,8)); return; }
+  const str = q.toLowerCase();
+  const filtered = customers.filter(c => (c.name||'').toLowerCase().includes(str) || (c.phone||'').toLowerCase().includes(str) || (String(c.id||'')).includes(str));
+  showCustomerSuggestions(filtered.slice(0,12));
+}
+customerInput.addEventListener('input', debounce((e)=>{
+  selectedCustomerIdEl.value = ''; // typing => clear previously selected id
+  filterCustomers(e.target.value);
+},200));
+customerInput.addEventListener('focus', ()=> filterCustomers(customerInput.value) );
+
+// کلیک روی پیشنهاد مشتری
+customerSuggestions.addEventListener('click', (ev)=>{
+  const it = ev.target.closest('.item');
+  if(!it) return;
+  const id = it.dataset.id;
+  const name = it.dataset.name;
+  customerInput.value = name;
+  selectedCustomerIdEl.value = id;
+  customerSuggestions.style.display='none';
+});
+
+// کلیک بیرون => پنهان کردن پیشنهادها
+document.addEventListener('click', (ev)=>{
+  if(!ev.target.closest('.search-wrapper')) {
+    customerSuggestions.style.display='none';
+    productSuggestions.style.display='none';
+  }
+});
+
+/* ====== PRODUCT: searchable input behavior ====== */
+const productSearch = document.getElementById('productSearch');
+const productSuggestions = document.getElementById('productSuggestions');
+
+function showProductSuggestions(list){
+  if(!list || list.length===0){
+    productSuggestions.style.display='none';
+    productSuggestions.innerHTML='';
+    return;
+  }
+  productSuggestions.innerHTML = list.map(p => 
+    `<div class="item" data-id="${p._id}" data-price="${p.price}" data-name="${escapeHtml(p.name)}">
+      ${escapeHtml(p.name)} — ${Number(p.price).toLocaleString()} تومان — موجودی: ${p.stock}
+    </div>`
+  ).join('');
+  productSuggestions.style.display='block';
+}
+function filterProducts(q){
+  if(!q) { showProductSuggestions(products.slice(0,8)); return; }
+  const str = q.toLowerCase();
+  const filtered = products.filter(p => (p.name||'').toLowerCase().includes(str) || (String(p.sku||'')).toLowerCase().includes(str));
+  showProductSuggestions(filtered.slice(0,12));
+}
+productSearch.addEventListener('input', debounce((e)=>{
+  filterProducts(e.target.value);
+},200));
+productSearch.addEventListener('focus', ()=> filterProducts(productSearch.value) );
+
+// وقتی محصول انتخاب شد
+let lastSelectedProduct = null; // {id, price, name}
+productSuggestions.addEventListener('click', (ev)=>{
+  const it = ev.target.closest('.item');
+  if(!it) return;
+  const id = Number(it.dataset._id);
+  const price = Number(it.dataset.price);
+  const name = it.dataset.name;
+  lastSelectedProduct = { id, price, name };
+  productSearch.value = name;
+  productSuggestions.style.display='none';
+});
+
+/* ====== افزودن آیتم به فاکتور ====== */
+document.getElementById('addItemBtn').addEventListener('click', ()=> {
+  // find selected product either from lastSelectedProduct or exact name match
+  const qty = Math.max(1, Number(document.getElementById('productQty').value || 1));
+  let product = null;
+  if(lastSelectedProduct) {
+    product = products.find(p => p._id === lastSelectedProduct._id);
+  }
+  if(!product) {
+    // try find by exact name search
+    const q = productSearch.value.trim().toLowerCase();
+    product = products.find(p => (p.name||'').toLowerCase() === q || (String(p.sku||'') === q));
+  }
+  if(!product) return alert('محصول انتخاب نشده یا صحیح نیست');
+  if(product.stock < qty) return alert('موجودی کافی نیست');
+
+  const existing = invoiceItems.find(i=>i.product_id===product._id);
+  if(existing) existing.quantity += qty;
+  else invoiceItems.push({ product_id: product._id, name: product.name, price: Number(product.price), quantity: qty });
+  // reset product input
+  productSearch.value = '';
+  lastSelectedProduct = null;
+  renderInvoiceItems();
+});
+
+/* --- تشخیص بارکد اسکن (Heroje NB271) --- */
+let barcodeBuffer = '';
+
+document.addEventListener('keypress', async (e) => {
+  // اگر مودال فاکتور باز نیست، کاری نکن
+  const modal = document.getElementById('createInvoiceModal');
+  if (!modal.classList.contains('show')) return;
+
+  // اگر بارکدخوان چیزی وارد کرد (غالباً سریع و پشت‌سرهم)
+  if (e.key === 'Enter') {
+    const code = barcodeBuffer.trim();
+    barcodeBuffer = '';
+    if (!code) return;
+
+    // حالا کد محصول (sku) را پیدا می‌کنیم
+    const product = products.find(p => String(p.sku) === code || `SKU:${p.sku}` === code);
+    if (!product) {
+      alert('❌ محصولی با این کد یافت نشد');
+      return;
+    }
+
+    // بررسی موجودی
+    const qty = 1;
+    if (product.stock < qty) {
+      alert('⚠️ موجودی کافی نیست');
+      return;
+    }
+
+    // اضافه کردن به فاکتور
+    const existing = invoiceItems.find(i => i.product_id === product.id);
+    if (existing) existing.quantity += qty;
+    else invoiceItems.push({ product_id: product.id, name: product.name, price: product.price, quantity: qty });
+    
+    renderInvoiceItems();
+  } else {
+    barcodeBuffer += e.key;
+  }
+});
+
+/* ====== رندر آیتم‌ها ====== */
+function renderInvoiceItems(){
+  const tbody = document.getElementById('invoiceItemsTbody');
+  tbody.innerHTML = invoiceItems.map((it, idx)=>`
+    <tr>
+      <td>${idx+1}</td>
+      <td>${escapeHtml(it.name)}</td>
+      <td><input type="number" min="1" value="${it.quantity}" class="form-control item-qty" data-idx="${idx}"></td>
+      <td>${Number(it.price).toLocaleString()}</td>
+      <td>${Number(it.price * it.quantity).toLocaleString()}</td>
+      <td><button class="btn btn-sm btn-danger remove-item" data-idx="${idx}">حذف</button></td>
+    </tr>
+  `).join('');
+  // event handlers
+  document.querySelectorAll('.remove-item').forEach(btn=>{
+    btn.onclick = ()=>{ invoiceItems.splice(Number(btn.dataset.idx),1); renderInvoiceItems() }
+  });
+  document.querySelectorAll('.item-qty').forEach(inp=>{
+    inp.onchange = ()=>{
+      const idx = Number(inp.dataset.idx);
+      const val = Math.max(1, Number(inp.value||1));
+      const prod = products.find(p=>p._id===invoiceItems[idx].product_id);
+      if (prod && val > prod.stock) {
+        alert('موجودی کافی نیست'); inp.value = invoiceItems[idx].quantity; return;
+      }
+      invoiceItems[idx].quantity = val;
+      renderInvoiceItems();
+    }
+  });
+  recalcTotals();
+}
+
+/* ====== محاسبه جمع‌ها ====== */
+function recalcTotals(){
+  const subtotal = invoiceItems.reduce((s,i)=>s + i.price * i.quantity, 0);
+  const tax = Number(document.getElementById('taxInput').value || 0);
+  const discount = Number(document.getElementById('discountInput').value || 0);
+  const total = subtotal + tax - discount;
+  document.getElementById('subtotalSpan').innerText = Number(subtotal).toLocaleString();
+  document.getElementById('taxSpan').innerText = Number(tax).toLocaleString();
+  document.getElementById('discountSpan').innerText = Number(discount).toLocaleString();
+  document.getElementById('totalSpan').innerText = Number(total).toLocaleString();
+}
+document.getElementById('taxInput').addEventListener('input', recalcTotals);
+document.getElementById('discountInput').addEventListener('input', recalcTotals);
+
+/* ====== ثبت فاکتور (payload شامل customer_id اگر انتخاب شده باشد) ====== */
+document.getElementById('createInvoiceBtn').addEventListener('click', async ()=>{
+  if (invoiceItems.length===0) return alert('هیچ آیتمی اضافه نشده');
+  const invoice_no = `INV-${Date.now()}`;
+  const customer_name = document.getElementById('customerInput').value.trim() || '';
+  const customer_id = document.getElementById('selectedCustomerId').value || null; // may be '' or id
+  const tax = Number(document.getElementById('taxInput').value || 0);
+  const discount = Number(document.getElementById('discountInput').value || 0);
+
+  const payload = {
+    invoice_no,
+    customer_name,
+    // include customer_id if selected (server may ignore if not implemented)
+    ...(customer_id ? { customer_id: Number(customer_id) } : {}),
+    tax,
+    discount,
+    items: invoiceItems.map(i=>({ product_id: i.product_id, quantity: i.quantity, price: i.price }))
+  };
+
+  try {
+    const res = await fetch(apiInvoices, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+    const result = await res.json()
+    if (result.success) {
+      alert('✅ فاکتور ثبت شد');
+      bootstrap.Modal.getInstance(document.getElementById('createInvoiceModal')).hide();
+      invoiceItems = [];
+      await loadProductsForSelect();
+      await loadCustomersList();
+      loadInvoices();
+    } else {
+      alert('❌ خطا: ' + (result.error || 'ثبت فاکتور موفق نبود'));
+    }
+  } catch(err){
+    console.error('create invoice error', err);
+    alert('❌ خطا در ارسال فاکتور به سرور');
+  }
+});
+
+/* ====== لیست و نمایش فاکتورها (بدون تغییر) ====== */
+
+async function loadInvoices(){
+  try {
+    const res = await fetch(apiInvoices);
+    const list = await res.json();
+    const tbody = document.getElementById('invoicesTbody');
+    const q = document.getElementById('invoiceSearch').value.toLowerCase();
+    tbody.innerHTML = list.filter(inv =>
+      String(inv._id).includes(q) || (inv.invoice_no||'').toLowerCase().includes(q) || (inv.customer_name||'').toLowerCase().includes(q)
+    ).map((inv, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${inv.invoice_no || ''}</td>
+        <td>${inv.customer_name || ''}</td>
+        <td>${toJalali(inv.date)}</td>
+        <td>${Number(inv.total).toLocaleString()}</td>
+        <td>
+          <button class="btn btn-sm btn-info" onclick="viewInvoice('${inv._id}')">🧾 نمایش</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteInvoice('${inv._id}')">🗑 حذف</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch(err){
+    console.error('loadInvoices error', err);
+    alert('خطا در بارگذاری فاکتورها');
+  }
+}
+
+/* ====== نمایش فاکتور و پرینت ====== */
+async function viewInvoice(id) {
+  const res = await fetch(`${apiInvoices}/${id}`);
+  const data = await res.json();
+
+  if(!data.success) {
+    alert('فاکتور یافت نشد'); 
+    return;
+  }
+
+  const { invoice } = data;
+  const items = invoice.items || [];
+
+  document.getElementById('invoiceDetails').innerHTML = `
+    <div class="text-center mb-3">
+      <h4>🧾 فاکتور شماره ${invoice.invoice_no}</h4>
+      <p>👤 مشتری: ${invoice.customer_name || '-'}</p>
+      <p>📅 تاریخ: ${toJalali(invoice.date)}</p>
+    </div>
+
+    <table class="table table-bordered table-hover text-center align-middle">
+      <thead class="table-success">
+        <tr>
+          <th id='numbercount'>#</th>
+          <th>محصول</th>
+          <th>تعداد</th>
+          <th>قیمت واحد (تومان)</th>
+          <th>جمع (تومان)</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map((it, i) => `
+          <tr>
+            <td id='numbercount'>${i + 1}</td>
+            <td>${it.product_name || it.product_id?.name || '—'}</td>
+            <td>${it.quantity}</td>
+            <td>${Number(it.price).toLocaleString()}</td>
+            <td>${(it.price * it.quantity).toLocaleString()}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <div class="text-end mt-3">
+      <p>🧾 جمع جزء: ${Number(invoice.subtotal).toLocaleString()} تومان</p>
+      <p>🔖 تخفیف: ${Number(invoice.discount).toLocaleString()} تومان</p>
+      <p>💰 مالیات: ${Number(invoice.tax).toLocaleString()}</p>
+      <h5 class="fw-bold text-success mt-2">💵 مبلغ نهایی: ${Number(invoice.total).toLocaleString()} تومان</h5>
+    </div>
+
+    <div class="text-center mt-4">
+      <button class="btn btn-outline-primary" onclick="printInvoice('${invoice._id}')">🖨️ چاپ فاکتور</button>
+    </div>
+  `;
+
+  new bootstrap.Modal(document.getElementById('viewInvoiceModal')).show();
+}
+
+function printInvoice(id) {
+  const content = document.getElementById('invoiceDetails').innerHTML;
+
+  const w = window.open('', '', 'width=450,height=800');
+  
+  w.document.write(`
+    <html lang="fa" dir="rtl">
+    <head>
+      <title>چاپ فاکتور</title>
+
+      <link href="assets/font/style.css" rel="stylesheet">
+      <style>
+        @page { size: 72mm 210mm; margin: 0; }
+
+        body {
+          margin: 0;
+          padding: 5px;
+          font-family: sans-serif;
+        }
+
+        .preview-box {
+          width: 72mm;
+          margin: auto;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        th, td {
+          border: 1px solid #000;
+          padding: 4px;
+          font-size: 11px;
+          text-align: center;
+        }
+
+        button { display:none; }
+        #numbercount { display: none; }
+
+        p {
+            border: 1px solid #000;
+            padding: 5px;
+            font-size: small;
+            margin:0;
+        }
+        h5 {
+            background:#000;
+            color:#fff;
+            padding:5px;
+            margin:0;
+            text-align:center;
+        }
+        img {
+            width: 100px;
+            display: block;
+            margin: 0 auto;
+        }
+      </style>
+    </head>
+
+    <body>
+
+      <div class="preview-box">
+        <img src="assets/img/logo.png">
+        <h3 style="text-align:center">« Setaya Gallery »</h3>
+
+        ${content}
+
+        <div style="margin-top:20px; text-align:center; font-size:11px; border-top:1px dashed #aaa; padding-top:5px;">
+          آدرس: منظریه، نبش کوچه علومی<br>
+          اینستاگرام: setaya_gallery
+        </div>
+      </div>
+
+    </body>
+    </html>
+  `);
+
+  w.document.close();
+
+  // 🔥 اجرای چاپ خودکار بدون نمایش صفحه
+  w.onload = () => {
+    w.focus();
+    w.print();
+    w.close();
+  };
+}
+
+
+
+/* ====== حذف فاکتور ====== */
+async function deleteInvoice(id){
+  if (!confirm('آیا حذف شود؟')) return;
+  try {
+    const res = await fetch(`${apiInvoices}/${id}`, { method:'DELETE' });
+    const r = await res.json();
+    if (r.success) { alert('✅ حذف شد'); loadInvoices(); }
+    else alert('❌ خطا در حذف');
+  } catch(err){
+    console.error('deleteInvoice error', err);
+    alert('خطا در حذف فاکتور');
+  }
+}
+
+/* ====== ابزارهای کمکی ====== */
+function escapeHtml(text){
+  if(typeof text !== 'string') return text;
+  return text.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+}
+
+/* ====== init ====== */
+(async ()=> {
+  await loadInitialData();
+  loadInvoices();
+})();
+
+</script>
+
+<!-- mnu -->
+<script src="assets/js/menu.js"></script>
+
+</body>
+</html>

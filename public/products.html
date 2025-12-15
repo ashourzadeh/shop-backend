@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مدیریت محصولات</title>
+  <link rel="icon" href="ico/favicon.ico" type="image/x-icon">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#000000">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.2/Vazirmatn-font-face.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/menu.css">
+
+  <style>
+    body {
+      background: #f4f6f9;
+      font-family: 'Vazirmatn', sans-serif;
+    }
+
+    .container {
+      margin-top: 20px;
+      max-width: 1100px;
+    }
+
+    /* نوار بالای صفحه */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(90deg, #F765AD, #F7BAC4);
+    color: #fff;
+    padding: 20px 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+    .page-header h1 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    /* دکمه افزودن و سرچ */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 25px 0;
+    }
+
+    .toolbar button {
+      background: linear-gradient(90deg, #F7BAC4, #F7BAC4);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: all 0.2s;
+    }
+
+    .toolbar button:hover {
+      background-color: #36a36e;
+      transform: translateY(-2px);
+    }
+
+    .toolbar input {
+      width: 250px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      font-size: 15px;
+    }
+
+    /* جدول */
+    .table {
+      background-color: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+    }
+
+    .table thead {
+      background: #f7b7c3;
+      color: white;
+    }
+
+    .table tbody tr:hover {
+      background-color: #f0fdf4;
+      transition: background 0.2s;
+    }
+
+    .modal-header {
+      background-color: #f7b7c3;
+      color: white;
+    }
+
+    .btn-primary {
+      background-color: #f7b7c3;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background-color: #379c71;
+    }
+
+    .pagination {
+      justify-content: center;
+    }
+
+
+.modal-header {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    padding: var(--bs-modal-header-padding);
+    border-bottom: var(--bs-modal-header-border-width) solid var(--bs-modal-header-border-color);
+    border-top-left-radius: var(--bs-modal-inner-border-radius);
+    border-top-right-radius: var(--bs-modal-inner-border-radius);
+    justify-content: center;
+    flex-direction: row-reverse;
+}
+  </style>
+</head>
+<body>
+
+<!-- منوی ثابت -->
+<div id="navbar-placeholder"></div>
+
+<!-- محتوای اصلی -->
+<div class="container">
+  <div class="page-header shadow">
+    <h1>📦 مدیریت محصولات</h1>
+    <i class="bi bi-box-seam fs-2"></i>
+  </div>
+
+  <div class="toolbar">
+    <button data-bs-toggle="modal" data-bs-target="#addModal">
+      <i class="bi bi-plus-circle"></i> افزودن محصول
+    </button>
+    <input type="text" id="searchInput" placeholder="🔍 جستجو...">
+  </div>
+
+  <table class="table table-bordered align-middle text-center">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>QR</th>
+        <th>نام محصول</th>
+        <th>قیمت</th>
+        <th>توضیحات</th>
+        <th>موجودی</th>
+        <th>عملیات</th>
+      </tr>
+    </thead>
+    <tbody id="productTableBody"></tbody>
+  </table>
+
+  <nav>
+    <ul class="pagination" id="pagination"></ul>
+  </nav>
+</div>
+
+<!-- مودال افزودن محصول -->
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-plus-circle"></i> افزودن محصول</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addForm">
+          <input type="text" class="form-control mb-2" placeholder="کد محصول" name="sku" required>
+          <input type="text" class="form-control mb-2" placeholder="نام محصول" name="name" required>
+          <input type="number" class="form-control mb-2" placeholder="قیمت" name="price" required>
+          <input type="text" class="form-control mb-2" placeholder="توضیحات" name="description">
+          <input type="number" class="form-control mb-2" placeholder="موجودی" name="stock" required>
+          <button type="submit" class="btn btn-primary w-100 mt-2"><i class="bi bi-check-circle"></i> ذخیره</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- مودال ویرایش محصول -->
+<div class="modal fade" id="editModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pencil-square"></i> ویرایش محصول</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editForm">
+          <input type="hidden" name="id">
+          <input type="text" class="form-control mb-2" placeholder="کد محصول" name="sku" disabled>
+          <input type="text" class="form-control mb-2" placeholder="نام محصول" name="name" required>
+          <input type="number" class="form-control mb-2" placeholder="قیمت" name="price" required>
+          <input type="text" class="form-control mb-2" placeholder="توضیحات" name="description">
+          <input type="number" class="form-control mb-2" placeholder="موجودی" name="stock" required>
+          <button type="submit" class="btn btn-primary w-100 mt-2"><i class="bi bi-check-circle"></i> ذخیره تغییرات</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/menu.js"></script>
+
+<script>
+  const apiUrl = 'http://localhost:3000/api/products';
+  let products = [];
+  let currentPage = 1;
+  const perPage = 20;
+
+  async function fetchProducts() {
+    const res = await fetch(apiUrl);
+    products = await res.json();
+    renderTable();
+    renderPagination();
+  }
+
+  function renderTable() {
+    const body = document.getElementById('productTableBody');
+    const term = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = products.filter(p => 
+      p.name.toLowerCase().includes(term) ||
+      p.description.toLowerCase().includes(term) ||
+      String(p._id).includes(term)
+    );
+    const start = (currentPage-1)*perPage;
+    const items = filtered.slice(start, start+perPage);
+    body.innerHTML = items.map((p, index) => `
+      <tr>
+        <td>${start + index + 1}</td>
+        <td><img src="http://localhost:3000/qrcodes/product_${p._id}.png" width="60"></td>
+        <td>${p.name}</td>
+        <td>${Number(p.price).toLocaleString()} تومان</td>
+        <td>${p.description}</td>
+        <td>${p.stock}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary" onclick="openEditModal('${p._id}')"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteProduct('${p._id}')"><i class="bi bi-trash"></i></button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function renderPagination() {
+    const pagination = document.getElementById('pagination');
+    const term = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = products.filter(p =>
+      p.name.toLowerCase().includes(term) ||
+      p.description.toLowerCase().includes(term)
+    );
+    const pages = Math.ceil(filtered.length / perPage);
+    pagination.innerHTML = '';
+    for (let i=1; i<=pages; i++) {
+      const li = document.createElement('li');
+      li.className = `page-item ${i===currentPage?'active':''}`;
+      li.innerHTML = `<a href="#" class="page-link">${i}</a>`;
+      li.onclick = e => { e.preventDefault(); currentPage=i; renderTable(); renderPagination(); }
+      pagination.appendChild(li);
+    }
+  }
+
+  document.getElementById('searchInput').addEventListener('input', ()=>{
+    currentPage = 1;
+    renderTable();
+    renderPagination();
+  });
+
+  document.getElementById('addForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const form = e.target;
+    const data = {
+      sku: form.sku.value,
+      name: form.name.value,
+      price: form.price.value,
+      description: form.description.value,
+      stock: Number(form.stock.value)
+    };
+    const res = await fetch(apiUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const result = await res.json();
+    if(result.success){ await fetchProducts(); bootstrap.Modal.getInstance(document.getElementById('addModal')).hide(); form.reset(); alert('✅ محصول اضافه شد'); }
+  });
+
+function openEditModal(id){
+  const p = products.find(x=>x._id===id); // ✅ درست شد
+  const form = document.getElementById('editForm');
+  form.id.value = p._id;
+  form.sku.value = p.sku;
+  form.name.value = p.name;
+  form.price.value = p.price;
+  form.description.value = p.description;
+  form.stock.value = p.stock;
+  new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+
+
+
+  document.getElementById('editForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const form = e.target;
+    const id = form.id.value;
+    const data = {
+      name: form.name.value,
+      price: form.price.value,
+      description: form.description.value,
+      stock: Number(form.stock.value)
+    };
+    const res = await fetch(`${apiUrl}/${id}`, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const result = await res.json();
+    if(result.success){ await fetchProducts(); bootstrap.Modal.getInstance(document.getElementById('editModal')).hide(); alert('✅ تغییرات ذخیره شد'); }
+  });
+
+  async function deleteProduct(id){
+    if(!confirm('آیا مطمئن هستید؟')) return;
+    const res = await fetch(`${apiUrl}/${id}`, {method:'DELETE'});
+    const result = await res.json();
+    if(result.success){ await fetchProducts(); alert('🗑️ حذف شد'); }
+  }
+
+  fetchProducts();
+</script>
+</body>
+</html>
