@@ -11,9 +11,9 @@ import mongoose from 'mongoose';
 
 dotenv.config();
 
-mongoose.connect('mongodb://127.0.0.1:27017/myshop')
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch(err => console.error("❌ Mongo Error:", err));
 
 const app = express();
 app.use(cors());
