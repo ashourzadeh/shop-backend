@@ -175,7 +175,7 @@
         <form id="addForm">
           <input type="text" class="form-control mb-2" placeholder="کد محصول" name="sku" required>
           <input type="text" class="form-control mb-2" placeholder="نام محصول" name="name" required>
-          <input type="number" class="form-control mb-2" placeholder="قیمت" name="price" required>
+          <input type="text" class="form-control mb-2 price-input" placeholder="قیمت (تومان)" name="price" required inputmode="numeric">
           <input type="text" class="form-control mb-2" placeholder="توضیحات" name="description">
           <input type="number" class="form-control mb-2" placeholder="موجودی" name="stock" required>
           <button type="submit" class="btn btn-primary w-100 mt-2"><i class="bi bi-check-circle"></i> ذخیره</button>
@@ -198,7 +198,7 @@
           <input type="hidden" name="id">
           <input type="text" class="form-control mb-2" placeholder="کد محصول" name="sku" disabled>
           <input type="text" class="form-control mb-2" placeholder="نام محصول" name="name" required>
-          <input type="number" class="form-control mb-2" placeholder="قیمت" name="price" required>
+          <input type="text" class="form-control mb-2 price-input" placeholder="قیمت (تومان)" name="price" required inputmode="numeric">
           <input type="text" class="form-control mb-2" placeholder="توضیحات" name="description">
           <input type="number" class="form-control mb-2" placeholder="موجودی" name="stock" required>
           <button type="submit" class="btn btn-primary w-100 mt-2"><i class="bi bi-check-circle"></i> ذخیره تغییرات</button>
@@ -210,6 +210,29 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="assets/js/menu.js"></script>
+
+<script>
+function formatPriceInput(input) {
+  input.addEventListener('input', () => {
+    // فقط عدد
+    let value = input.value.replace(/,/g, '').replace(/\D/g, '');
+    if (!value) {
+      input.value = '';
+      return;
+    }
+    // فرمت نمایشی
+    input.value = Number(value).toLocaleString();
+  });
+}
+
+// اعمال روی همه فیلدهای قیمت
+document.querySelectorAll('.price-input').forEach(formatPriceInput);
+
+// تبدیل قیمت نمایشی به عدد واقعی
+function getPureNumber(value) {
+  return Number(value.replace(/,/g, ''));
+}
+</script>
 
 <script>
   const apiUrl = 'http://localhost:3000/api/products';
@@ -280,7 +303,7 @@
     const data = {
       sku: form.sku.value,
       name: form.name.value,
-      price: form.price.value,
+      price: getPureNumber(form.price.value),
       description: form.description.value,
       stock: Number(form.stock.value)
     };
@@ -295,13 +318,11 @@ function openEditModal(id){
   form.id.value = p._id;
   form.sku.value = p.sku;
   form.name.value = p.name;
-  form.price.value = p.price;
+  form.price.value = Number(p.price).toLocaleString();
   form.description.value = p.description;
   form.stock.value = p.stock;
   new bootstrap.Modal(document.getElementById('editModal')).show();
 }
-
-
 
   document.getElementById('editForm').addEventListener('submit', async e=>{
     e.preventDefault();
@@ -309,7 +330,7 @@ function openEditModal(id){
     const id = form.id.value;
     const data = {
       name: form.name.value,
-      price: form.price.value,
+      price: getPureNumber(form.price.value),
       description: form.description.value,
       stock: Number(form.stock.value)
     };
@@ -324,7 +345,7 @@ function openEditModal(id){
     const result = await res.json();
     if(result.success){ await fetchProducts(); alert('🗑️ حذف شد'); }
   }
-
+  
   fetchProducts();
 </script>
 </body>
