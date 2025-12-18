@@ -59,7 +59,7 @@ function renderQRGrid(products) {
   const container = document.getElementById('qrGrid');
   container.innerHTML = products.map(p => `
     <div class="qr-card">
-      <img src="http://localhost:3000/${p.qr_code}" alt="QR ${p.name}">
+      <img src="https://shop-backend-dzq2.onrender.com/${p.qr_code}" alt="QR ${p.name}">
       <div class="mt-2"><strong>${p.name}</strong></div>
       <div>${p.sku}</div>
     </div>
