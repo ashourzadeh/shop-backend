@@ -87,7 +87,7 @@
       if (!id) return alert("شناسه فاکتور مشخص نیست");
 
       try {
-        const res = await fetch(`http://localhost:3000/api/invoices/${id}`);
+        const res = await fetch(`https://shop-backend-dzq2.onrender.com/api/invoices/${id}`);
         const data = await res.json();
 
         if (!res.ok || !data.invoice) {
