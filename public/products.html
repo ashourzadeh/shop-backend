@@ -235,7 +235,7 @@ function getPureNumber(value) {
 </script>
 
 <script>
-  const apiUrl = 'http://localhost:3000/api/products';
+  const apiUrl = 'https://shop-backend-dzq2.onrender.com/api/products';
   let products = [];
   let currentPage = 1;
   const perPage = 20;
@@ -260,7 +260,7 @@ function getPureNumber(value) {
     body.innerHTML = items.map((p, index) => `
       <tr>
         <td>${start + index + 1}</td>
-        <td><img src="http://localhost:3000/qrcodes/product_${p._id}.png" width="60"></td>
+        <td><img src="https://shop-backend-dzq2.onrender.com/qrcodes/product_${p._id}.png" width="60"></td>
         <td>${p.name}</td>
         <td>${Number(p.price).toLocaleString()} تومان</td>
         <td>${p.description}</td>
