@@ -156,7 +156,7 @@ th {
 
     // 📦 گرفتن لیست مشتری‌ها
     async function loadCustomers() {
-      const res = await fetch('http://localhost:3000/api/customers');
+      const res = await fetch('https://shop-backend-dzq2.onrender.com/api/customers');
       const data = await res.json();
       renderTable(data);
     }
@@ -213,7 +213,7 @@ th {
         address: document.getElementById('customerAddress').value,
       };
 
-      const url = id ? `http://localhost:3000/api/customers/${id}` : 'http://localhost:3000/api/customers';
+      const url = id ? `https://shop-backend-dzq2.onrender.com/api/customers/${id}` : 'https://shop-backend-dzq2.onrender.com/api/customers';
       const method = id ? 'PUT' : 'POST';
 
       await fetch(url, {
@@ -229,7 +229,7 @@ th {
     // ❌ حذف
     async function deleteCustomer(id) {
       if (confirm('آیا مطمئنی می‌خوای حذفش کنی؟')) {
-        await fetch(`http://localhost:3000/api/customers/${id}`, { method: 'DELETE' });
+        await fetch(`https://shop-backend-dzq2.onrender.com/api/customers/${id}`, { method: 'DELETE' });
         loadCustomers();
       }
     }
