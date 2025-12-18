@@ -51,6 +51,10 @@ app.get('/qr', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'qrcodes.html'));
 });
 
+app.get('/qrcodes', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'qrcodes.html'));
+});
+
 app.get('/products', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'products.html'));
 });
